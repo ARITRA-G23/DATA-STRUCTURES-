@@ -1,0 +1,118 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <limits.h>
+
+#define MAX_VERTICES 100
+
+struct Node {
+    int vertex;
+    int weight;
+    struct Node* next;
+};
+
+struct Graph {
+    int numVertices;
+    struct Node** adjLists;
+};
+
+struct Node* createNode(int vertex, int weight) {
+    struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
+    newNode->vertex = vertex;
+    newNode->weight = weight;
+    newNode->next = NULL;
+    return newNode;
+}
+
+struct Graph* createGraph(int vertices) {
+    struct Graph* graph = (struct Graph*)malloc(sizeof(struct Graph));
+    graph->numVertices = vertices;
+
+    graph->adjLists = (struct Node**)malloc(vertices * sizeof(struct Node*));
+    for (int i = 0; i < vertices; i++)
+        graph->adjLists[i] = NULL;
+
+    return graph;
+}
+
+void addEdge(struct Graph* graph, int src, int dest, int weight) {
+    // Add edge from src to dest
+    struct Node* newNode = createNode(dest, weight);
+    newNode->next = graph->adjLists[src];
+    graph->adjLists[src] = newNode;
+
+    // Add edge from dest to src (assuming undirected graph)
+    newNode = createNode(src, weight);
+    newNode->next = graph->adjLists[dest];
+    graph->adjLists[dest] = newNode;
+}
+
+int minDistance(int dist[], bool sptSet[], int numVertices) {
+    int min = INT_MAX, min_index;
+
+    for (int v = 0; v < numVertices; v++) {
+        if (!sptSet[v] && dist[v] <= min) {
+            min = dist[v];
+            min_index = v;
+        }
+    }
+
+    return min_index;
+}
+
+void dijkstra(struct Graph* graph, int src) {
+    int numVertices = graph->numVertices;
+    int dist[numVertices];
+    bool sptSet[numVertices];
+
+    for (int i = 0; i < numVertices; i++) {
+        dist[i] = INT_MAX;
+        sptSet[i] = false;
+    }
+
+    dist[src] = 0;
+
+    for (int count = 0; count < numVertices - 1; count++) {
+        int u = minDistance(dist, sptSet, numVertices);
+        sptSet[u] = true;
+
+        struct Node* temp = graph->adjLists[u];
+        while (temp != NULL) {
+            int v = temp->vertex;
+            if (!sptSet[v] && dist[u] != INT_MAX && dist[u] + temp->weight < dist[v]) {
+                dist[v] = dist[u] + temp->weight;
+            }
+            temp = temp->next;
+        }
+    }
+
+    printf("Shortest distances from source vertex %d:\n", src);
+    for (int i = 0; i < numVertices; i++) {
+        printf("Vertex %d -> Distance: %d\n", i, dist[i]);
+    }
+}
+
+int main() {
+    int numVertices, numEdges, src, dest, weight;
+
+    printf("Enter number of vertices: ");
+    scanf("%d", &numVertices);
+
+    struct Graph* graph = createGraph(numVertices);
+
+    printf("Enter number of edges: ");
+    scanf("%d", &numEdges);
+
+    printf("Enter edges (format: src dest weight):\n");
+    for (int i = 0; i < numEdges; i++) {
+        scanf("%d %d %d", &src, &dest, &weight);
+        addEdge(graph, src, dest, weight);
+    }
+
+    printf("Enter source vertex for Dijkstra's shortest path algorithm: ");
+    scanf("%d", &src);
+
+    dijkstra(graph, src);
+
+    return 0;
+}
