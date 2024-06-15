@@ -1,0 +1,83 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
+
+#define MAX_SIZE 100
+
+// Stack implementation
+int stack[MAX_SIZE];
+int top = -1;
+
+void push(int data) {
+    if (top == MAX_SIZE - 1) {
+        exit(EXIT_FAILURE); // Stack overflow
+    }
+    stack[++top] = data;
+}
+
+int pop() {
+    if (top == -1) {
+        exit(EXIT_FAILURE); // Stack underflow
+    }
+    return stack[top--];
+}
+
+int peek() {
+    if (top == -1) {
+        return -1; // Stack is empty
+    }
+    return stack[top];
+}
+
+// Evaluate function
+int evaluateExpression(char* expression, int x) {
+    int result = 0;
+    int i = 0;
+    while (expression[i] != '\0') {
+        if (isdigit(expression[i])) {
+            int num = 0;
+            while (isdigit(expression[i])) {
+                num = num * 10 + (expression[i++] - '0');
+            }
+            push(num);
+        } else if (expression[i] == 'x') {
+            push(x);
+            i++;
+        } else if (expression[i] == '+' || expression[i] == '-' || expression[i] == '*') {
+            int operand2 = pop();
+            int operand1 = pop();
+            switch (expression[i]) {
+                case '+':
+                    push(operand1 + operand2);
+                    break;
+                case '-':
+                    push(operand1 - operand2);
+                    break;
+                case '*':
+                    push(operand1 * operand2);
+                    break;
+            }
+            i++;
+        } else {
+            i++;
+        }
+    }
+    result = pop();
+    return result;
+}
+
+int main() {
+    char expression[MAX_SIZE];
+    int x, result;
+
+    // Read expression and value of x
+    scanf("%s %d", expression, &x);
+
+    // Evaluate expression
+    result = evaluateExpression(expression, x);
+
+    // Print result
+    printf("%d\n", result);
+
+    return 0;
+}
