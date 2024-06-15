@@ -1,0 +1,185 @@
+//STACK USING LINKED LIST
+#include <stdio.h>
+#include <stdlib.h>
+
+struct Node {
+    int data;
+    struct Node* next;
+};
+
+struct Node* top = NULL;
+
+void push(int data) {
+    struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
+    if (newNode == NULL) {
+        printf("Memory allocation failed.\n");
+        return;
+    }
+    newNode->data = data;
+    newNode->next = top;
+    top = newNode;
+    printf("%d pushed to stack.\n", data);
+}
+
+int pop() {
+    if (top == NULL) {
+        printf("Stack is empty.\n");
+        return -1;
+    }
+    struct Node* temp = top;
+    int data = temp->data;
+    top = top->next;
+    free(temp);
+    return data;
+}
+
+int peek() {
+    if (top == NULL) {
+        printf("Stack is empty.\n");
+        return -1;
+    }
+    return top->data;
+}
+
+void display() {
+    if (top == NULL) {
+        printf("Stack is empty.\n");
+        return;
+    }
+    struct Node* current = top;
+    printf("Stack: ");
+    while (current != NULL) {
+        printf("%d ", current->data);
+        current = current->next;
+    }
+    printf("\n");
+}
+
+int main() {
+    int choice, data;
+    do {
+        printf("\nMenu:\n");
+        printf("1. Push\n");
+        printf("2. Pop\n");
+        printf("3. Peek\n");
+        printf("4. Display\n");
+        printf("5. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                printf("Enter data to push: ");
+                scanf("%d", &data);
+                push(data);
+                break;
+            case 2:
+                printf("Popped element: %d\n", pop());
+                break;
+            case 3:
+                printf("Top element: %d\n", peek());
+                break;
+            case 4:
+                display();
+                break;
+            case 5:
+                printf("Exiting...\n");
+                break;
+            default:
+                printf("Invalid choice.\n");
+        }
+    } while (choice != 5);
+
+    // Free memory used by stack nodes before exiting
+    struct Node* temp;
+    while (top != NULL) {
+        temp = top;
+        top = top->next;
+        free(temp);
+    }
+
+    return 0;
+}
+// STACK USING ARRAY
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX_SIZE 100
+
+int stack[MAX_SIZE];
+int top = -1;
+
+void push(int data) {
+    if (top == MAX_SIZE - 1) {
+        printf("Stack overflow. Cannot push %d.\n", data);
+        return;
+    }
+    stack[++top] = data;
+    printf("%d pushed to stack.\n", data);
+}
+
+int pop() {
+    if (top == -1) {
+        printf("Stack is empty.\n");
+        return -1;
+    }
+    return stack[top--];
+}
+
+int peek() {
+    if (top == -1) {
+        printf("Stack is empty.\n");
+        return -1;
+    }
+    return stack[top];
+}
+
+void display() {
+    if (top == -1) {
+        printf("Stack is empty.\n");
+        return;
+    }
+    printf("Stack: ");
+    for (int i = top; i >= 0; i--) {
+        printf("%d ", stack[i]);
+    }
+    printf("\n");
+}
+
+int main() {
+    int choice, data;
+    do {
+        printf("\nMenu:\n");
+        printf("1. Push\n");
+        printf("2. Pop\n");
+        printf("3. Peek\n");
+        printf("4. Display\n");
+        printf("5. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                printf("Enter data to push: ");
+                scanf("%d", &data);
+                push(data);
+                break;
+            case 2:
+                printf("Popped element: %d\n", pop());
+                break;
+            case 3:
+                printf("Top element: %d\n", peek());
+                break;
+            case 4:
+                display();
+                break;
+            case 5:
+                printf("Exiting...\n");
+                break;
+            default:
+                printf("Invalid choice.\n");
+        }
+    } while (choice != 5);
+
+    return 0;
+}
