@@ -1,0 +1,146 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
+#define MAX_VERTICES 100
+
+struct Node {
+    int data;
+    struct Node* next;
+};
+
+struct Graph {
+    int numVertices;
+    struct Node** adjLists;
+    bool* visited;
+};
+
+struct Node* createNode(int data) {
+    struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
+    newNode->data = data;
+    newNode->next = NULL;
+    return newNode;
+}
+
+struct Graph* createGraph(int vertices) {
+    struct Graph* graph = (struct Graph*)malloc(sizeof(struct Graph));
+    graph->numVertices = vertices;
+
+    graph->adjLists = (struct Node**)malloc(vertices * sizeof(struct Node*));
+    graph->visited = (bool*)malloc(vertices * sizeof(bool));
+
+    for (int i = 0; i < vertices; i++) {
+        graph->adjLists[i] = NULL;
+        graph->visited[i] = false;
+    }
+
+    return graph;
+}
+
+void addEdge(struct Graph* graph, int src, int dest) {
+    // Add edge from src to dest
+    struct Node* newNode = createNode(dest);
+    newNode->next = graph->adjLists[src];
+    graph->adjLists[src] = newNode;
+
+    // Add edge from dest to src (assuming undirected graph)
+    newNode = createNode(src);
+    newNode->next = graph->adjLists[dest];
+    graph->adjLists[dest] = newNode;
+}
+
+void bfs(struct Graph* graph, int startVertex) {
+    struct Node* queue[MAX_VERTICES];
+    int front = 0, rear = 0;
+    queue[rear++] = createNode(startVertex);
+    graph->visited[startVertex] = true;
+
+    while (front < rear) {
+        struct Node* currentNode = queue[front++];
+        printf("%d ", currentNode->data);
+
+        struct Node* temp = graph->adjLists[currentNode->data];
+        while (temp) {
+            int adjVertex = temp->data;
+            if (!graph->visited[adjVertex]) {
+                queue[rear++] = createNode(adjVertex);
+                graph->visited[adjVertex] = true;
+            }
+            temp = temp->next;
+        }
+    }
+}
+
+void dfsUtil(struct Graph* graph, int vertex) {
+    graph->visited[vertex] = true;
+    printf("%d ", vertex);
+
+    struct Node* temp = graph->adjLists[vertex];
+    while (temp) {
+        int adjVertex = temp->data;
+        if (!graph->visited[adjVertex])
+            dfsUtil(graph, adjVertex);
+        temp = temp->next;
+    }
+}
+
+void dfs(struct Graph* graph, int startVertex) {
+    dfsUtil(graph, startVertex);
+}
+
+void displayMenu() {
+    printf("\nMenu:\n");
+    printf("1. Perform Breadth-First Search (BFS)\n");
+    printf("2. Perform Depth-First Search (DFS)\n");
+    printf("3. Exit\n");
+    printf("Enter your choice: ");
+}
+
+int main() {
+    int numVertices, choice;
+    printf("Enter number of vertices: ");
+    scanf("%d", &numVertices);
+
+    struct Graph* graph = createGraph(numVertices);
+
+    int src, dest;
+    char edge[5]; // To store edge input like "4-5"
+
+    printf("Enter edges (format: src-dest, enter '0-0' to stop):\n");
+    while (true) {
+        scanf("%s", edge);
+        if (edge[0] == '0' && edge[2] == '0')
+            break;
+        sscanf(edge, "%d-%d", &src, &dest);
+        addEdge(graph, src, dest);
+    }
+
+    do {
+        displayMenu();
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                printf("Enter starting vertex for BFS traversal: ");
+                scanf("%d", &src);
+                printf("BFS Traversal starting from vertex %d: ", src);
+                bfs(graph, src);
+                printf("\n");
+                break;
+            case 2:
+                printf("Enter starting vertex for DFS traversal: ");
+                scanf("%d", &src);
+                printf("DFS Traversal starting from vertex %d: ", src);
+                dfs(graph, src);
+                printf("\n");
+                break;
+            case 3:
+                printf("Exiting...\n");
+                break;
+            default:
+                printf("Invalid choice. Please enter again.\n");
+        }
+    } while (choice != 3);
+
+    return 0;
+}
