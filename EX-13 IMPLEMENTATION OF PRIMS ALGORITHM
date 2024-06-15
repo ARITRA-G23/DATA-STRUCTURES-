@@ -1,0 +1,117 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <limits.h>
+
+#define MAX_VERTICES 100
+
+struct Node {
+    int vertex;
+    int weight;
+    struct Node* next;
+};
+
+struct Graph {
+    int numVertices;
+    struct Node** adjLists;
+};
+
+struct Node* createNode(int vertex, int weight) {
+    struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
+    newNode->vertex = vertex;
+    newNode->weight = weight;
+    newNode->next = NULL;
+    return newNode;
+}
+
+struct Graph* createGraph(int vertices) {
+    struct Graph* graph = (struct Graph*)malloc(sizeof(struct Graph));
+    graph->numVertices = vertices;
+
+    graph->adjLists = (struct Node**)malloc(vertices * sizeof(struct Node*));
+    for (int i = 0; i < vertices; i++)
+        graph->adjLists[i] = NULL;
+
+    return graph;
+}
+
+void addEdge(struct Graph* graph, int src, int dest, int weight) {
+    // Add edge from src to dest
+    struct Node* newNode = createNode(dest, weight);
+    newNode->next = graph->adjLists[src];
+    graph->adjLists[src] = newNode;
+
+    // Add edge from dest to src (assuming undirected graph)
+    newNode = createNode(src, weight);
+    newNode->next = graph->adjLists[dest];
+    graph->adjLists[dest] = newNode;
+}
+
+void primMST(struct Graph* graph) {
+    int numVertices = graph->numVertices;
+    int parent[numVertices]; // Array to store MST
+    int key[numVertices];    // Key values to pick minimum weight edge
+
+    bool mstSet[numVertices]; // To represent set of vertices included in MST
+
+    // Initialize all keys as INFINITE and mstSet[] as false
+    for (int i = 0; i < numVertices; i++) {
+        key[i] = INT_MAX;
+        mstSet[i] = false;
+    }
+
+    // Always include first vertex in MST. Start with 0th vertex
+    key[0] = 0;     // Make key 0 so that this vertex is picked as first vertex
+    parent[0] = -1; // First node is always root of MST
+
+    // The MST will have numVertices vertices
+    for (int count = 0; count < numVertices - 1; count++) {
+        // Pick the minimum key vertex from the set of vertices not yet included in MST
+        int u = -1;
+        for (int v = 0; v < numVertices; v++) {
+            if (!mstSet[v] && (u == -1 || key[v] < key[u]))
+                u = v;
+        }
+
+        mstSet[u] = true; // Include the picked vertex in MST
+
+        // Update key value and parent index of adjacent vertices of the picked vertex
+        struct Node* temp = graph->adjLists[u];
+        while (temp != NULL) {
+            int v = temp->vertex;
+            int weight = temp->weight;
+            if (!mstSet[v] && weight < key[v]) {
+                parent[v] = u;
+                key[v] = weight;
+            }
+            temp = temp->next;
+        }
+    }
+
+    // Print edges of MST using parent array
+    printf("Edges in Minimum Spanning Tree:\n");
+    for (int i = 1; i < numVertices; i++)
+        printf("%d - %d\n", parent[i], i);
+}
+
+int main() {
+    int numVertices, numEdges, src, dest, weight;
+
+    printf("Enter number of vertices: ");
+    scanf("%d", &numVertices);
+
+    struct Graph* graph = createGraph(numVertices);
+
+    printf("Enter number of edges: ");
+    scanf("%d", &numEdges);
+
+    printf("Enter edges (format: src dest weight):\n");
+    for (int i = 0; i < numEdges; i++) {
+        scanf("%d %d %d", &src, &dest, &weight);
+        addEdge(graph, src, dest, weight);
+    }
+
+    primMST(graph);
+
+    return 0;
+}
