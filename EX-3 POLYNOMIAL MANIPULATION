@@ -1,0 +1,268 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+struct Node {
+    int coeff;
+    int exp;
+    struct Node* next;
+};
+
+struct Node* createNode(int coeff, int exp) {
+    struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
+    newNode->coeff = coeff;
+    newNode->exp = exp;
+    newNode->next = NULL;
+    return newNode;
+}
+
+void insertNode(struct Node** poly, int coeff, int exp) {
+    struct Node* newNode = createNode(coeff, exp);
+    if (*poly == NULL || (*poly)->exp < exp) {
+        newNode->next = *poly;
+        *poly = newNode;
+    } else {
+        struct Node* temp = *poly;
+        while (temp->next != NULL && temp->next->exp > exp) {
+            temp = temp->next;
+        }
+        newNode->next = temp->next;
+        temp->next = newNode;
+    }
+}
+
+struct Node* addPolynomials(struct Node* poly1, struct Node* poly2) {
+    struct Node* result = NULL;
+    while (poly1 != NULL && poly2 != NULL) {
+        if (poly1->exp > poly2->exp) {
+            insertNode(&result, poly1->coeff, poly1->exp);
+            poly1 = poly1->next;
+        } else if (poly1->exp < poly2->exp) {
+            insertNode(&result, poly2->coeff, poly2->exp);
+            poly2 = poly2->next;
+        } else {
+            int sum = poly1->coeff + poly2->coeff;
+            if (sum != 0) {
+                insertNode(&result, sum, poly1->exp);
+            }
+            poly1 = poly1->next;
+            poly2 = poly2->next;
+        }
+    }
+    while (poly1 != NULL) {
+        insertNode(&result, poly1->coeff, poly1->exp);
+        poly1 = poly1->next;
+    }
+    while (poly2 != NULL) {
+        insertNode(&result, poly2->coeff, poly2->exp);
+        poly2 = poly2->next;
+    }
+    return result;
+}
+
+struct Node* subtractPolynomials(struct Node* poly1, struct Node* poly2) {
+    struct Node* result = NULL;
+    while (poly1 != NULL && poly2 != NULL) {
+        if (poly1->exp > poly2->exp) {
+            insertNode(&result, poly1->coeff, poly1->exp);
+            poly1 = poly1->next;
+        } else if (poly1->exp < poly2->exp) {
+            insertNode(&result, -poly2->coeff, poly2->exp);
+            poly2 = poly2->next;
+        } else {
+            int diff = poly1->coeff - poly2->coeff;
+            if (diff != 0) {
+                insertNode(&result, diff, poly1->exp);
+            }
+            poly1 = poly1->next;
+            poly2 = poly2->next;
+        }
+    }
+    while (poly1 != NULL) {
+        insertNode(&result, poly1->coeff, poly1->exp);
+        poly1 = poly1->next;
+    }
+    while (poly2 != NULL) {
+        insertNode(&result, -poly2->coeff, poly2->exp);
+        poly2 = poly2->next;
+    }
+    return result;
+}
+
+struct Node* multiplyPolynomials(struct Node* poly1, struct Node* poly2) {
+    struct Node* result = NULL;
+    struct Node* temp = poly2;
+    while (poly1 != NULL) {
+        poly2 = temp;
+        while (poly2 != NULL) {
+            int coeff = poly1->coeff * poly2->coeff;
+            int exp = poly1->exp + poly2->exp;
+            struct Node* found = NULL;
+            found = createNode(coeff, exp);
+            if (result == NULL) {
+                result = found;
+            } else {
+                struct Node* traverse = result;
+                while (traverse->next != NULL) {
+                    traverse = traverse->next;
+                }
+                traverse->next = found;
+            }
+            poly2 = poly2->next;
+        }
+        poly1 = poly1->next;
+    }
+    return result;
+}
+
+void displayPolynomial(struct Node* poly) {
+    if (poly == NULL) {
+        printf("0\n");
+        return;
+    }
+    while (poly != NULL) {
+        printf("%dx^%d", poly->coeff, poly->exp);
+        poly = poly->next;
+        if (poly != NULL) {
+            printf(" + ");
+        }
+    }
+    printf("\n");
+}
+
+void freePolynomial(struct Node* poly) {
+    struct Node* temp;
+    while (poly != NULL) {
+        temp = poly;
+        poly = poly->next;
+        free(temp);
+    }
+}
+
+int main() {
+    struct Node* poly1 = NULL;
+    struct Node* poly2 = NULL;
+    struct Node* result = NULL;
+    int coeff, exp;
+    int choice;
+
+    do {
+        printf("Menu:\n");
+        printf("1. Add Polynomials\n");
+        printf("2. Subtract Polynomials\n");
+        printf("3. Multiply Polynomials\n");
+        printf("4. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                printf("Enter first polynomial (coeff exp, -1 to end):\n");
+                while (1) {
+                    scanf("%d", &coeff);
+                    if (coeff == -1)
+                        break;
+                    scanf("%d", &exp);
+                    insertNode(&poly1, coeff, exp);
+                }
+
+                printf("Enter second polynomial (coeff exp, -1 to end):\n");
+                while (1) {
+                    scanf("%d", &coeff);
+                    if (coeff == -1)
+                        break;
+                    scanf("%d", &exp);
+                    insertNode(&poly2, coeff, exp);
+                }
+
+                printf("Polynomial 1: ");
+                displayPolynomial(poly1);
+                printf("Polynomial 2: ");
+                displayPolynomial(poly2);
+
+                result = addPolynomials(poly1, poly2);
+                printf("Result of addition: ");
+                displayPolynomial(result);
+
+                freePolynomial(poly1);
+                freePolynomial(poly2);
+                freePolynomial(result);
+                break;
+
+            case 2:
+                printf("Enter first polynomial (coeff exp, -1 to end):\n");
+                while (1) {
+                    scanf("%d", &coeff);
+                    if (coeff == -1)
+                        break;
+                    scanf("%d", &exp);
+                    insertNode(&poly1, coeff, exp);
+                }
+
+                printf("Enter second polynomial (coeff exp, -1 to end):\n");
+                while (1) {
+                    scanf("%d", &coeff);
+                    if (coeff == -1)
+                        break;
+                    scanf("%d", &exp);
+                    insertNode(&poly2, coeff, exp);
+                }
+
+                printf("Polynomial 1: ");
+                displayPolynomial(poly1);
+                printf("Polynomial 2: ");
+                displayPolynomial(poly2);
+
+                result = subtractPolynomials(poly1, poly2);
+                printf("Result of subtraction: ");
+                displayPolynomial(result);
+
+                freePolynomial(poly1);
+                freePolynomial(poly2);
+                freePolynomial(result);
+                break;
+
+            case 3:
+                printf("Enter first polynomial (coeff exp, -1 to end):\n");
+                while (1) {
+                    scanf("%d", &coeff);
+                    if (coeff == -1)
+                        break;
+                    scanf("%d", &exp);
+                    insertNode(&poly1, coeff, exp);
+                }
+
+                printf("Enter second polynomial (coeff exp, -1 to end):\n");
+                while (1) {
+                    scanf("%d", &coeff);
+                    if (coeff == -1)
+                        break;
+                    scanf("%d", &exp);
+                    insertNode(&poly2, coeff, exp);
+                }
+
+                printf("Polynomial 1: ");
+                displayPolynomial(poly1);
+                printf("Polynomial 2: ");
+                displayPolynomial(poly2);
+
+                result = multiplyPolynomials(poly1, poly2);
+                printf("Result of multiplication: ");
+                displayPolynomial(result);
+
+                freePolynomial(poly1);
+                freePolynomial(poly2);
+                freePolynomial(result);
+                break;
+
+            case 4:
+                printf("Exiting...\n");
+                break;
+
+            default:
+                printf("Invalid choice.\n");
+        }
+
+    } while (choice != 4);
+
+    return 0;
+}
