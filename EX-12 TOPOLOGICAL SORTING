@@ -1,0 +1,115 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX_VERTICES 100
+
+struct Node {
+    int data;
+    struct Node* next;
+};
+
+struct Graph {
+    int numVertices;
+    struct Node** adjLists;
+    int* indegree; // Array to store indegree of each vertex
+};
+
+struct Node* createNode(int data) {
+    struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
+    newNode->data = data;
+    newNode->next = NULL;
+    return newNode;
+}
+
+struct Graph* createGraph(int vertices) {
+    struct Graph* graph = (struct Graph*)malloc(sizeof(struct Graph));
+    graph->numVertices = vertices;
+
+    graph->adjLists = (struct Node**)malloc(vertices * sizeof(struct Node*));
+    graph->indegree = (int*)malloc(vertices * sizeof(int));
+
+    for (int i = 0; i < vertices; i++) {
+        graph->adjLists[i] = NULL;
+        graph->indegree[i] = 0;
+    }
+
+    return graph;
+}
+
+void addEdge(struct Graph* graph, int src, int dest) {
+    struct Node* newNode = createNode(dest);
+    newNode->next = graph->adjLists[src];
+    graph->adjLists[src] = newNode;
+
+    graph->indegree[dest]++;
+}
+
+void topologicalSort(struct Graph* graph) {
+    int vertices = graph->numVertices;
+    int* indegree = graph->indegree;
+
+    // Queue for vertices with zero indegree
+    int queue[MAX_VERTICES];
+    int front = 0, rear = 0;
+
+    // Initialize queue with vertices having zero indegree
+    for (int i = 0; i < vertices; i++) {
+        if (indegree[i] == 0)
+            queue[rear++] = i;
+    }
+
+    int count = 0; // Counter to count visited vertices
+
+    // Array to store topological order
+    int topologicalOrder[MAX_VERTICES];
+
+    while (front < rear) {
+        int vertex = queue[front++];
+        topologicalOrder[count++] = vertex;
+
+        struct Node* temp = graph->adjLists[vertex];
+        while (temp != NULL) {
+            int adjVertex = temp->data;
+            indegree[adjVertex]--;
+
+            if (indegree[adjVertex] == 0)
+                queue[rear++] = adjVertex;
+
+            temp = temp->next;
+        }
+    }
+
+    // Check if there was a cycle
+    if (count != vertices) {
+        printf("Graph has a cycle! Topological sorting not possible.\n");
+        return;
+    }
+
+    // Print topological order
+    printf("Topological Sorting of the Graph: ");
+    for (int i = 0; i < vertices; i++)
+        printf("%d ", topologicalOrder[i]);
+    printf("\n");
+}
+
+int main() {
+    int numVertices, numEdges, src, dest;
+
+    printf("Enter number of vertices: ");
+    scanf("%d", &numVertices);
+
+    struct Graph* graph = createGraph(numVertices);
+
+    printf("Enter number of edges: ");
+    scanf("%d", &numEdges);
+
+    printf("Enter edge sets (format: src dest):\n");
+    for (int i = 0; i < numEdges; i++) {
+        scanf("%d %d", &src, &dest);
+        addEdge(graph, src, dest);
+    }
+
+    topologicalSort(graph);
+
+    return 0;
+}
