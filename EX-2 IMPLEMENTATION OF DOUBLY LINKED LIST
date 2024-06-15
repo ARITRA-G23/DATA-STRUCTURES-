@@ -1,0 +1,95 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+struct Node {
+    int data;
+    struct Node* next;
+    struct Node* prev;
+};
+
+struct Node* head = NULL;
+
+void insert(int data) {
+    struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
+    newNode->data = data;
+    newNode->next = head;
+    newNode->prev = NULL;
+    if (head != NULL) {
+        head->prev = newNode;
+    }
+    head = newNode;
+}
+
+void deleteNode(int data) {
+    struct Node* current = head;
+    while (current != NULL && current->data != data) {
+        current = current->next;
+    }
+    if (current != NULL) {
+        if (current->prev != NULL) {
+            current->prev->next = current->next;
+        } else {
+            head = current->next;
+        }
+        if (current->next != NULL) {
+            current->next->prev = current->prev;
+        }
+        free(current);
+    }
+}
+
+struct Node* search(int data) {
+    struct Node* current = head;
+    while (current != NULL && current->data != data) {
+        current = current->next;
+    }
+    return current;
+}
+
+void display() {
+    struct Node* current = head;
+    while (current != NULL) {
+        printf("%d <-> ", current->data);
+        current = current->next;
+    }
+    printf("NULL\n");
+}
+
+int main() {
+    int choice, data;
+    do {
+        printf("Menu:\n");
+        printf("1. Insert\n");
+        printf("2. Delete\n");
+        printf("3. Search\n");
+        printf("4. Display\n");
+        printf("5. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+        switch (choice) {
+            case 1:
+                printf("Enter data: ");
+                scanf("%d", &data);
+                insert(data);
+                break;
+            case 2:
+                printf("Enter data to delete: ");
+                scanf("%d", &data);
+                deleteNode(data);
+                break;
+            case 3:
+                printf("Enter data to search: ");
+                scanf("%d", &data);
+                printf("Element %sfound\n", search(data) ? "" : "not ");
+                break;
+            case 4:
+                display();
+                break;
+            case 5:
+                break;
+            default:
+                printf("Invalid choice\n");
+        }
+    } while (choice != 5);
+    return 0;
+}
