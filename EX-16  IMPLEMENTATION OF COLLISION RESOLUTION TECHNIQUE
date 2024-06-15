@@ -1,0 +1,140 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
+#define SIZE 10
+
+struct Node {
+    int key;
+    int data;
+    struct Node* next;
+};
+
+struct HashTable {
+    struct Node** table;
+    int size;
+};
+
+struct HashTable* createHashTable(int size) {
+    struct HashTable* ht = (struct HashTable*)malloc(sizeof(struct HashTable));
+    ht->size = size;
+    ht->table = (struct Node**)malloc(size * sizeof(struct Node*));
+    for (int i = 0; i < size; i++)
+        ht->table[i] = NULL;
+    return ht;
+}
+
+int hashFunction(int key, int size) {
+    return key % size;
+}
+
+void insertOpenAddressing(struct HashTable* ht, int key, int data) {
+    int index = hashFunction(key, ht->size);
+
+    while (ht->table[index] != NULL) {
+        index = (index + 1) % ht->size;
+    }
+
+    struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
+    newNode->key = key;
+    newNode->data = data;
+    newNode->next = NULL;
+
+    ht->table[index] = newNode;
+}
+
+void insertClosedAddressing(struct HashTable* ht, int key, int data) {
+    int index = hashFunction(key, ht->size);
+
+    struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
+    newNode->key = key;
+    newNode->data = data;
+    newNode->next = NULL;
+
+    if (ht->table[index] == NULL) {
+        ht->table[index] = newNode;
+    } else {
+        struct Node* temp = ht->table[index];
+        while (temp->next != NULL)
+            temp = temp->next;
+        temp->next = newNode;
+    }
+}
+
+void rehash(struct HashTable* ht) {
+    int newSize = ht->size * 2;
+    struct HashTable* newHT = createHashTable(newSize);
+
+    for (int i = 0; i < ht->size; i++) {
+        struct Node* temp = ht->table[i];
+        while (temp != NULL) {
+            insertOpenAddressing(newHT, temp->key, temp->data);
+            temp = temp->next;
+        }
+    }
+
+    free(ht->table);
+    ht->table = newHT->table;
+    ht->size = newHT->size;
+    free(newHT);
+}
+
+void displayHashTable(struct HashTable* ht) {
+    printf("Hash Table:\n");
+    for (int i = 0; i < ht->size; i++) {
+        printf("[%d]: ", i);
+        struct Node* temp = ht->table[i];
+        while (temp != NULL) {
+            printf("(%d, %d) -> ", temp->key, temp->data);
+            temp = temp->next;
+        }
+        printf("NULL\n");
+    }
+}
+
+int main() {
+    struct HashTable* ht = NULL;
+    int choice, key, data;
+
+    printf("Enter initial size of Hash Table: ");
+    scanf("%d", &choice);
+    ht = createHashTable(choice);
+
+    do {
+        printf("\nMenu:\n");
+        printf("1. Insert using Open Addressing (Linear Probing)\n");
+        printf("2. Insert using Closed Addressing (Chaining)\n");
+        printf("3. Rehashing\n");
+        printf("4. Display Hash Table\n");
+        printf("5. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                printf("Enter key and data to insert: ");
+                scanf("%d %d", &key, &data);
+                insertOpenAddressing(ht, key, data);
+                break;
+            case 2:
+                printf("Enter key and data to insert: ");
+                scanf("%d %d", &key, &data);
+                insertClosedAddressing(ht, key, data);
+                break;
+            case 3:
+                rehash(ht);
+                printf("Rehashing done.\n");
+                break;
+            case 4:
+                displayHashTable(ht);
+                break;
+            case 5:
+                printf("Exiting...\n");
+                break;
+            default:
+                printf("Invalid choice. Please enter again.\n");
+        }
+    } while (choice != 5);
+
+    return 0;
+}
